@@ -1,51 +1,53 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MusicBoxAPI.Entity;
+using MusicBoxAPI.Interfaces.IRepository;
 using MusicBoxAPI.Models;
+using MusicBoxAPI.Repository;
 
 namespace MusicBoxAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+
     public class PlayListController : ControllerBase
     {
 
+        private readonly IPlayListRepository _playListRepository;
 
+        // 透過依賴注入取得 repository
+        public PlayListController(IPlayListRepository playListRepository)
+        {
+            _playListRepository = playListRepository;
+        }
 
 
 
         [HttpPost("PersonalAlbum")]
-        public string PersonalAlbum(string ListName, string Type)
+        public ActionResult<string> PersonalAlbum(string ListName, string Type)
         {
-            DataBase dataBase = new DataBase();
-            Guid newGuid = Guid.NewGuid();
-            string sql = $"INSERT INTO UserPlayList(UserListID, ListName, Type) VALUES ('{newGuid}', '{ListName}', '{Type}')";
-            dataBase.ExecuteSqlCommand(sql);
+            _playListRepository.PersonalAlbum(ListName, Type);
             return "建立個人專輯成功";
+
         }
 
 
         [HttpPost("PersonalMusic")]
-        public string PersonalMusic(PersonalMusic personalMusic)
+        public ActionResult<string> PersonalMusic(PersonalMusic personalMusic)
         {
-            DataBase dataBase = new DataBase();
-            Guid newGuid = Guid.NewGuid();
-            string MusicName = "123";
-            Guid Userid = Guid.Parse("26485b67-9d4f-4448-a1b4-7546361c8590");
-            string sql = $"INSERT INTO UserMusicDetail(ID, UserID, MusicName, UserListID, MusicID) VALUES ('{newGuid}', '{Userid}', '{MusicName}', '{personalMusic.UserListID}', '{personalMusic.MusicID}')";
-            dataBase.ExecuteSqlCommand(sql);
+            _playListRepository.PersonalMusic(personalMusic);
+
             return "加入個人專輯成功";
         }
 
         [HttpDelete("PersonalAlbum")]
-        public string DeleteAlbum(Guid UserListID)
+        public ActionResult<string> DeleteAlbum(Guid UserListID)
         {
-            DataBase dataBase = new DataBase();
-            string sql = $"DELETE FROM UserPlayList WHERE UserLIstID = '{UserListID}'";
-            string sql2 = $"DELETE FROM UserMusicDetail WHERE UserLIstID = '{UserListID}'";
-            dataBase.ExecuteSqlCommand(sql2);
-            dataBase.ExecuteSqlCommand(sql);
 
+            _playListRepository.DeleteAlbum(UserListID);
             return "刪除成功";
 
 
@@ -53,11 +55,10 @@ namespace MusicBoxAPI.Controllers
         }
 
         [HttpDelete("PersonalMusic")]
-        public string PersonalMusic(Guid MusicID)
+        public ActionResult<string> PersonalMusic(Guid MusicID)
         {
-            DataBase dataBase = new DataBase();
-            string sql = $"DELETE FROM UserMusicDetail WHERE MusicID = '{MusicID}'";
-            dataBase.ExecuteSqlCommand(sql);
+
+            _playListRepository.PersonalMusic(MusicID);
 
             return "刪除成功";
 
